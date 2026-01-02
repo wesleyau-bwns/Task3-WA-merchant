@@ -20,7 +20,7 @@ const Drawer = styled(MuiDrawer)({
 });
 
 export default function SideMenu() {
-  const { user } = useAuth();
+  const { merchant } = useAuth();
 
   return (
     <Drawer
@@ -54,10 +54,10 @@ export default function SideMenu() {
       >
         <Box sx={{ mr: "auto" }}>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
-            {user?.name}
+            {merchant?.name}
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            {user?.email}
+            {merchant?.email}
           </Typography>
         </Box>
       </Stack>

@@ -1,39 +1,38 @@
 import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import LoadingScreen from "./LoadingScreen";
+import { hasAccessToken } from "../services/tokenService";
 import { useAuth } from "../contexts/AuthContext";
-import { isAuthReady } from "../utils/tokenService";
 
 export default function ProtectedRoute({
   children,
   allowedPermissions = [],
   requireAll = false,
 }) {
-  const { user, loading, fetchUser } = useAuth();
+  const { merchant, loading, fetchMerchant } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    // Fetch user data if token exists but user data isn't loaded yet
-    if (isAuthReady() && !user && !loading) {
-      fetchUser();
-    }
-  }, [user, loading, fetchUser]);
+    // Attempt to fetch merchant
+    if (hasAccessToken() && !merchant && !loading) fetchMerchant();
+  }, [merchant, loading, fetchMerchant]);
 
-  // Redirect to sign-in if no token is available
-  if (!isAuthReady()) return <Navigate to="/" replace />;
+  // Merchant fetch in progress
+  if (loading) return <LoadingScreen />;
 
-  // Show loading indicator while fetching user data
-  if (loading || !user) return null;
+  // Merchant fetch unsuccessful
+  if (!merchant && !loading) return <Navigate to="/login" replace />;
 
   // Check permissions if specified
   if (allowedPermissions.length > 0) {
     const hasPermission = requireAll
-      ? allowedPermissions.every((p) => user.permissions?.includes(p))
-      : allowedPermissions.some((p) => user.permissions?.includes(p));
+      ? allowedPermissions.every((p) => merchant.permissions?.includes(p))
+      : allowedPermissions.some((p) => merchant.permissions?.includes(p));
 
     if (!hasPermission) {
       console.log("[ProtectedRoute] Unauthorized access:", {
         path: location.pathname,
-        userPermissions: user.permissions,
+        merchantPermissions: merchant.permissions,
         allowedPermissions,
       });
 
@@ -41,6 +40,6 @@ export default function ProtectedRoute({
     }
   }
 
-  // Render protected content once user is authenticated
+  // Render protected content
   return children;
 }

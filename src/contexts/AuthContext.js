@@ -1,26 +1,43 @@
 import { createContext, useContext, useState } from "react";
-import api from "../api/axios";
+import { getAuthenticatedMerchant } from "../api/endpoints/auth";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // Initialize merchant from localStorage if available
+  const [merchant, internalSetMerchant] = useState(() => {
+    const storedMerchant = localStorage.getItem("merchant");
+    return storedMerchant ? JSON.parse(storedMerchant) : null;
+  });
+
   const [loading, setLoading] = useState(false);
 
-  const fetchUser = async () => {
+  // Persist merchant across browser refreshes
+  const setMerchant = (newMerchant) => {
+    internalSetMerchant(newMerchant);
+    if (newMerchant) {
+      localStorage.setItem("merchant", JSON.stringify(newMerchant));
+    } else {
+      localStorage.removeItem("merchant");
+    }
+  };
+
+  const fetchMerchant = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/api/auth/user");
-      setUser(res.data.user);
+      const data = await getAuthenticatedMerchant();
+      setMerchant(data.merchant);
     } catch (error) {
-      setUser(null);
+      setMerchant(null);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, fetchUser }}>
+    <AuthContext.Provider
+      value={{ merchant, setMerchant, loading, fetchMerchant }}
+    >
       {children}
     </AuthContext.Provider>
   );
