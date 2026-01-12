@@ -1,42 +1,49 @@
 import { createContext, useContext, useState } from "react";
-import { getAuthenticatedMerchant } from "../api/endpoints/auth";
+import {
+  getAuthenticatedMerchant,
+  getPermissions,
+} from "../api/endpoints/auth";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Initialize merchant from localStorage if available
-  const [merchant, internalSetMerchant] = useState(() => {
-    const storedMerchant = localStorage.getItem("merchant");
-    return storedMerchant ? JSON.parse(storedMerchant) : null;
-  });
-
+  const [merchant, setMerchant] = useState(null);
+  const [permissions, setPermissions] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  // Persist merchant across browser refreshes
-  const setMerchant = (newMerchant) => {
-    internalSetMerchant(newMerchant);
-    if (newMerchant) {
-      localStorage.setItem("merchant", JSON.stringify(newMerchant));
-    } else {
-      localStorage.removeItem("merchant");
-    }
-  };
 
   const fetchMerchant = async () => {
     setLoading(true);
     try {
-      const data = await getAuthenticatedMerchant();
-      setMerchant(data.merchant);
-    } catch (error) {
+      const response = await getAuthenticatedMerchant();
+      const merchant = response.data.merchant || null;
+      setMerchant(merchant);
+    } catch {
       setMerchant(null);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchPermissions = async () => {
+    try {
+      const response = await getPermissions();
+      const perms = response.data.permissions || [];
+      setPermissions(perms);
+    } catch (err) {
+      setPermissions([]);
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ merchant, setMerchant, loading, fetchMerchant }}
+      value={{
+        merchant,
+        permissions,
+        loading,
+        setMerchant,
+        fetchMerchant,
+        fetchPermissions,
+      }}
     >
       {children}
     </AuthContext.Provider>
