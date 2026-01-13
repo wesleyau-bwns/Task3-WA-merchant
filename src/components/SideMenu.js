@@ -1,8 +1,6 @@
 import { styled } from "@mui/material/styles";
 import MuiDrawer, { drawerClasses } from "@mui/material/Drawer";
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import { Box, Typography, Stack, Avatar } from "@mui/material";
 import MenuContent from "./MenuContent";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -52,6 +50,13 @@ export default function SideMenu() {
           borderColor: "divider",
         }}
       >
+        <Avatar
+          alt={merchant?.name}
+          src={merchant?.avatar}
+          sx={{ width: 32, height: 32 }}
+        >
+          {merchant?.name ? merchant.name.charAt(0).toUpperCase() : "?"}
+        </Avatar>
         <Box sx={{ mr: "auto" }}>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             {merchant?.name}
